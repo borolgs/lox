@@ -2,6 +2,7 @@ use std::fmt::Display;
 
 use crate::token::{Literal, Token};
 
+#[derive(Debug)]
 pub enum Expr {
     Binary(Box<Expr>, Token, Box<Expr>),
     // Assign(Token, Box<Expr>),
@@ -44,7 +45,10 @@ impl Display for Expr {
             }
             Expr::Literal(literal) => match literal {
                 Literal::String(v) => write!(f, "{}", v),
-                Literal::Number(v) => write!(f, "{:.1}", v),
+                Literal::Number(v) => write!(f, "{}", v),
+                Literal::True => write!(f, "true"),
+                Literal::False => write!(f, "false"),
+                Literal::Nil => write!(f, "nil"),
             },
 
             Expr::Unary(operator, right) => write!(f, "({} {})", operator.lexeme, right),
@@ -61,11 +65,11 @@ mod tests {
     #[test]
     fn test_binary_expr() {
         let expr = binary(
-            literal(Literal::Number(1.0)),
+            literal(Literal::Number(1.1)),
             Token::new(TokenType::Minus, "-".into(), None, 1),
             literal(Literal::Number(2.0)),
         );
-        assert_eq!(expr.to_string(), "(- 1.0 2.0)");
+        assert_eq!(expr.to_string(), "(- 1.1 2)");
     }
 
     #[test]
@@ -75,6 +79,6 @@ mod tests {
             Token::new(TokenType::Minus, "-".into(), None, 1),
             grouping(literal(Literal::Number(2.0))),
         );
-        assert_eq!(expr.to_string(), "(- 1.0 (group 2.0))");
+        assert_eq!(expr.to_string(), "(- 1 (group 2))");
     }
 }

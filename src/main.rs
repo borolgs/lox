@@ -1,5 +1,6 @@
 mod ast;
 mod error;
+mod parser;
 mod scanner;
 mod token;
 
@@ -43,7 +44,7 @@ fn help() -> Result<()> {
 fn run(source: &str) {
     let mut scanner = scanner::Scanner::new(source.to_string());
     let tokens = scanner.scan_tokens();
-    for token in tokens {
-        println!("{:?}", token);
-    }
+    let mut parser = parser::Parser::new(&tokens);
+    let expr = parser.expression().unwrap();
+    println!("{:?}", expr);
 }

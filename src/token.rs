@@ -32,9 +32,12 @@ impl ToString for Token {
 pub enum Literal {
     String(String),
     Number(f64),
+    True,
+    False,
+    Nil,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum TokenType {
     // Single-character tokens.
     LeftParen,
