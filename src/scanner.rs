@@ -25,8 +25,7 @@ impl Scanner {
             self.scan_token();
         }
 
-        self.tokens
-            .push(Token::new(TokenType::Eof, "".into(), None, self.line));
+        self.tokens.push(Token::new(TokenType::Eof, "".into(), None, self.line));
 
         &self.tokens
     }
@@ -48,9 +47,7 @@ impl Scanner {
                 true => self.add_token(TokenType::BangEqual, None),
                 false => self.add_token(TokenType::Bang, None),
             },
-            token if token == '=' && self.match_second('=') => {
-                self.add_token(TokenType::EqualEqual, None)
-            }
+            token if token == '=' && self.match_second('=') => self.add_token(TokenType::EqualEqual, None),
             '=' => self.add_token(TokenType::Equal, None),
             '<' => match self.match_second('=') {
                 true => self.add_token(TokenType::LessEqual, None),
@@ -81,8 +78,7 @@ impl Scanner {
 
     fn add_token(&mut self, token_type: TokenType, literal: Option<Literal>) {
         let text = self.source[self.start..self.current].to_string();
-        self.tokens
-            .push(Token::new(token_type, text, literal, self.line));
+        self.tokens.push(Token::new(token_type, text, literal, self.line));
     }
 
     fn identifier(&mut self) {
@@ -133,6 +129,7 @@ impl Scanner {
         self.advance();
 
         let value = self.source[self.start + 1..self.current - 1].to_string();
+        println!("value: {}", value);
         self.add_token(TokenType::String, Some(Literal::String(value)));
     }
 
@@ -213,10 +210,7 @@ mod tests {
         let tokens = scanner.scan_tokens();
         assert_eq!(tokens.len(), 2);
         assert_eq!(tokens[0].token_type, TokenType::String);
-        assert_eq!(
-            tokens[0].literal,
-            Some(Literal::String("hello\nworld".into()))
-        );
+        assert_eq!(tokens[0].literal, Some(Literal::String("hello\nworld".into())));
     }
 
     #[test]

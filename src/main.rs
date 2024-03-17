@@ -1,13 +1,16 @@
 mod ast;
 mod error;
+mod interpreter;
 mod parser;
 mod scanner;
 mod token;
 
-use anyhow::Result;
+use error::LoxError;
+use interpreter::{Interpreter, IntrError, IntrResult};
+use parser::Parser;
 use std::io::{self, BufRead};
 
-fn main() -> Result<()> {
+fn main() -> anyhow::Result<()> {
     let args = std::env::args().collect::<Vec<String>>();
     println!("Args: {:?}", args);
     match args.len() {
@@ -17,7 +20,7 @@ fn main() -> Result<()> {
     }
 }
 
-fn run_prompt() -> Result<()> {
+fn run_prompt() -> anyhow::Result<()> {
     let lines = io::stdin().lock().lines();
     for line in lines {
         if let Ok(line) = line {
@@ -30,21 +33,47 @@ fn run_prompt() -> Result<()> {
     Ok(())
 }
 
-fn run_file(filename: &str) -> Result<()> {
+fn run_file(filename: &str) -> anyhow::Result<()> {
     let source = std::fs::read_to_string(filename).expect("Could not read file");
     run(&source);
     Ok(())
 }
 
-fn help() -> Result<()> {
+fn help() -> anyhow::Result<()> {
     println!("Usage: rlox [script]");
     Ok(())
 }
 
 fn run(source: &str) {
-    let mut scanner = scanner::Scanner::new(source.to_string());
+    let res = interpret(source);
+    match res {
+        Ok(res) => println!("{:?}", res),
+        Err(err) => match err {
+            LoxError::ParseError(_) => todo!(),
+            LoxError::RuntimeError(IntrError::Unsupported(token)) => {
+                println!("Unsupported operation\n[line {}]", token.line)
+            }
+            LoxError::RuntimeError(IntrError::Runtime(token, message)) => {
+                println!("{}\n[line {}]", message, token.line)
+            }
+            _ => todo!(),
+        },
+    }
+}
+
+fn interpret(input: &str) -> Result<IntrResult, LoxError> {
+    let mut scanner = scanner::Scanner::new(input.into());
     let tokens = scanner.scan_tokens();
-    let mut parser = parser::Parser::new(&tokens);
-    let expr = parser.expression().unwrap();
-    println!("{:?}", expr);
+
+    let mut parser = Parser::new(tokens);
+    let mut interpreter = Interpreter;
+
+    let res = match parser.expression() {
+        Ok(expr) => interpreter.evaluate(&expr)?,
+        Err(err) => {
+            return Err(err.into());
+        }
+    };
+
+    Ok(res)
 }

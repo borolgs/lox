@@ -30,8 +30,7 @@ impl<'a> Parser<'a> {
     fn equality(&mut self) -> Result<Expr, ParserError> {
         let mut left = self.comparison()?;
 
-        while let Some(operator) = self.match_tokens(&[TokenType::BangEqual, TokenType::EqualEqual])
-        {
+        while let Some(operator) = self.match_tokens(&[TokenType::BangEqual, TokenType::EqualEqual]) {
             let right = self.comparison()?;
             left = binary(left, operator, right);
         }
@@ -95,7 +94,7 @@ impl<'a> Parser<'a> {
             return Ok(literal(Literal::Number(token.lexeme.parse().unwrap())));
         }
         if let Some(token) = self.match_token(TokenType::String) {
-            return Ok(literal(Literal::String(token.lexeme)));
+            return Ok(literal(token.literal.unwrap()));
         }
         if let Some(_) = self.match_token(TokenType::True) {
             return Ok(literal(Literal::True));
@@ -192,10 +191,7 @@ mod tests {
             ("1 + 2 * 3", "(+ 1 (* 2 3))"),
             ("1 + 2 * 3 - 4", "(- (+ 1 (* 2 3)) 4)"),
             ("1 + (2 * 3) - 4", "(- (+ 1 (group (* 2 3))) 4)"),
-            (
-                "1 + (2 * 3) - (4 * 5)",
-                "(- (+ 1 (group (* 2 3))) (group (* 4 5)))",
-            ),
+            ("1 + (2 * 3) - (4 * 5)", "(- (+ 1 (group (* 2 3))) (group (* 4 5)))"),
         ];
 
         for (input, expected) in tests {
